@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secret Notes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: #04020a;
+      color: #c9a96e;
+      font-family: 'Cinzel', 'Times New Roman', serif;
+      padding: 50px 20px 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top gold rule */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent 0%, #6b4c00 15%, #d4a017 40%, #f0c040 50%, #d4a017 60%, #6b4c00 85%, transparent 100%);
+      z-index: 10;
+    }
+
+    /* ── HEADER ── */
+    header {
+      text-align: center;
+      margin-bottom: 52px;
+      max-width: 640px;
+    }
+
+    .eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 7px;
+      color: #7a5c20;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-family: 'Cinzel Decorative', 'Cinzel', serif;
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-weight: 700;
+      letter-spacing: 5px;
+      line-height: 1.2;
+      animation: rainbowText 4s linear infinite;
+    }
+
+    @keyframes rainbowText {
+      0%   { color: #ff4060; text-shadow: 0 0 28px rgba(255,64,96,0.8),  0 0 55px rgba(255,64,96,0.4),  0 2px 6px #000; }
+      16%  { color: #ff9020; text-shadow: 0 0 28px rgba(255,144,32,0.8), 0 0 55px rgba(255,144,32,0.4), 0 2px 6px #000; }
+      33%  { color: #f0f020; text-shadow: 0 0 28px rgba(240,240,32,0.8), 0 0 55px rgba(240,240,32,0.4), 0 2px 6px #000; }
+      50%  { color: #40ff80; text-shadow: 0 0 28px rgba(64,255,128,0.8), 0 0 55px rgba(64,255,128,0.4), 0 2px 6px #000; }
+      66%  { color: #40b0ff; text-shadow: 0 0 28px rgba(64,176,255,0.8), 0 0 55px rgba(64,176,255,0.4), 0 2px 6px #000; }
+      83%  { color: #c060ff; text-shadow: 0 0 28px rgba(192,96,255,0.8), 0 0 55px rgba(192,96,255,0.4), 0 2px 6px #000; }
+      100% { color: #ff4060; text-shadow: 0 0 28px rgba(255,64,96,0.8),  0 0 55px rgba(255,64,96,0.4),  0 2px 6px #000; }
+    }
+
+    .ornament-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-content: center;
+      margin: 14px 0 10px;
+      color: #a07830;
+      font-size: 1rem;
+    }
+    .ornament-line::before,
+    .ornament-line::after {
+      content: '';
+      height: 1px;
+      width: 80px;
+      background: linear-gradient(90deg, transparent, #a07830, transparent);
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      color: #6b4c20;
+      font-style: italic;
+      font-family: 'IM Fell English', serif;
+    }
+
+    /* ── WRITE FORM ── */
+    .write-section {
+      width: 100%;
+      max-width: 660px;
+      margin-bottom: 56px;
+    }
+
+    .parchment-box {
+      background:
+        linear-gradient(160deg, #f4e8c1 0%, #ecddb0 35%, #e0c98a 70%, #d4b870 100%);
+      border: 2px solid #a07830;
+      border-radius: 2px;
+      padding: 30px 30px 24px;
+      position: relative;
+      box-shadow:
+        0 0 0 1px #6b4c00,
+        0 12px 48px rgba(0,0,0,0.7),
+        inset 0 1px 0 rgba(255,255,255,0.4),
+        inset 0 -1px 0 rgba(0,0,0,0.1);
+    }
+
+    /* inner double border */
+    .parchment-box::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(120, 80, 20, 0.22);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    /* corner flourishes */
+    .parchment-box::after {
+      content: '✦';
+      position: absolute;
+      bottom: 10px;
+      right: 14px;
+      font-size: 0.6rem;
+      color: rgba(100, 65, 15, 0.35);
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.62rem;
+      letter-spacing: 5px;
+      color: #6b4c18;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    #note-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(120, 80, 20, 0.35);
+      color: #2a1a08;
+      font-family: 'IM Fell English', 'Times New Roman', serif;
+      font-size: 1.1rem;
+      line-height: 1.9;
+      resize: none;
+      outline: none;
+      padding: 6px 0 10px;
+      min-height: 90px;
+    }
+
+    #note-input::placeholder {
+      color: rgba(100, 65, 20, 0.45);
+      font-style: italic;
+    }
+
+    .seal-btn {
+      margin-top: 22px;
+      width: 100%;
+      background: linear-gradient(160deg, #8b0000 0%, #a31515 45%, #7a0000 100%);
+      color: #f0d080;
+      border: 2px solid #5a0000;
+      border-radius: 2px;
+      padding: 13px 20px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.25s;
+      box-shadow:
+        0 4px 18px rgba(139,0,0,0.45),
+        inset 0 1px 0 rgba(255,255,255,0.12);
+    }
+
+    .seal-btn:hover {
+      background: linear-gradient(160deg, #a31515 0%, #c02020 45%, #900000 100%);
+      box-shadow: 0 6px 28px rgba(160,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+      letter-spacing: 5px;
+    }
+
+    .seal-btn:active { transform: translateY(0); }
+
+    /* ── NOTES LIST ── */
+    .notes-section { width: 100%; max-width: 660px; }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.6rem;
+      letter-spacing: 6px;
+      color: #6b4c20;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .notes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 36px;
+    }
+
+    /* ── NOTE CARD ── */
+    .note-card {
+      position: relative;
+      animation: cardIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .note-inner {
+      background: linear-gradient(160deg, #f4e8c1 0%, #ecddb0 35%, #e0c98a 70%, #d4b870 100%);
+      border: 2px solid #a07830;
+      border-radius: 2px;
+      padding: 28px 28px 22px;
+      min-height: 140px;
+      position: relative;
+      box-shadow:
+        0 0 0 1px #6b4c00,
+        0 10px 40px rgba(0,0,0,0.65),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .note-inner::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(120, 80, 20, 0.2);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+
+    .note-text {
+      font-family: 'IM Fell English', 'Times New Roman', serif;
+      font-size: 1.05rem;
+      color: #2a1a08;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .note-date {
+      margin-top: 18px;
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      color: #7a5c20;
+      font-family: 'Cinzel', serif;
+    }
+
+    .note-delete {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: transparent;
+      border: 1px solid rgba(120, 70, 20, 0.28);
+      color: rgba(110, 65, 15, 0.5);
+      padding: 4px 11px;
+      font-size: 0.58rem;
+      letter-spacing: 3px;
+      font-family: 'Cinzel', serif;
+      border-radius: 1px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .note-delete:hover {
+      background: rgba(139,0,0,0.08);
+      border-color: rgba(139,0,0,0.5);
+      color: rgba(139,0,0,0.75);
+    }
+
+    .note-countdown {
+      margin-top: 16px;
+      font-size: 0.6rem;
+      letter-spacing: 4px;
+      color: rgba(90, 58, 12, 0.5);
+      font-family: 'Cinzel', serif;
+      text-transform: uppercase;
+      animation: breathe 1s ease-in-out infinite;
+    }
+
+    .note-hide-btn {
+      display: inline-block;
+      margin-top: 10px;
+      background: linear-gradient(135deg, #5a2e00 0%, #7a4400 100%);
+      color: #f0d080;
+      border: 1px solid #3a1e00;
+      border-radius: 2px;
+      padding: 7px 18px;
+      font-size: 0.62rem;
+      letter-spacing: 3px;
+      font-family: 'Cinzel', serif;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 8px rgba(80,40,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .note-hide-btn:hover {
+      background: linear-gradient(135deg, #7a4400 0%, #9a5800 100%);
+      box-shadow: 0 4px 14px rgba(100,55,0,0.45), inset 0 1px 0 rgba(255,255,255,0.1);
+      letter-spacing: 4px;
+    }
+
+    /* ── MAP CANVAS OVERLAY ── */
+    .map-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border-radius: 2px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .map-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+      pointer-events: all;
+      transition: opacity 0.9s ease;
+    }
+
+    .map-canvas.fading { opacity: 0; }
+    .map-canvas.gone   { display: none; }
+
+    /* hint below card */
+    .scratch-hint {
+      position: absolute;
+      bottom: -26px;
+      left: 0; right: 0;
+      text-align: center;
+      font-size: 0.58rem;
+      letter-spacing: 4px;
+      color: #7a5c20;
+      text-transform: uppercase;
+      font-family: 'Cinzel', serif;
+      animation: breathe 2.4s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes breathe {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 1; }
+    }
+
+    .scratch-hint.gone { visibility: hidden; }
+
+    /* ── MUSIC TOGGLE ── */
+    .music-btn {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 38% 38%, #d49010, #7a4e00);
+      border: 2px solid #4a3000;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      z-index: 200;
+      box-shadow:
+        0 4px 22px rgba(0,0,0,0.65),
+        0 0 0 1px #2e1e00,
+        0 0 18px rgba(180,110,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .music-btn:hover {
+      transform: scale(1.1);
+      box-shadow:
+        0 6px 30px rgba(0,0,0,0.7),
+        0 0 0 1px #2e1e00,
+        0 0 32px rgba(212,150,0,0.4);
+    }
+
+    .music-btn.playing {
+      animation: musicGlow 2.2s ease-in-out infinite;
+    }
+
+    @keyframes musicGlow {
+      0%, 100% { box-shadow: 0 4px 22px rgba(0,0,0,0.65), 0 0 0 1px #2e1e00, 0 0 18px rgba(180,110,0,0.15); }
+      50%       { box-shadow: 0 4px 22px rgba(0,0,0,0.65), 0 0 0 1px #2e1e00, 0 0 44px rgba(220,160,0,0.55); }
+    }
+
+    .music-note-icon {
+      font-size: 1.5rem;
+      color: #f0d080;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .music-btn.playing .music-note-icon { display: none; }
+    .music-btn.paused  .music-bar       { display: none; }
+
+    .music-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: #f0d080;
+      transform-origin: bottom center;
+    }
+
+    .music-btn.playing .music-bar:nth-child(2) { height: 8px;  animation: barBounce 0.75s ease-in-out infinite 0.00s; }
+    .music-btn.playing .music-bar:nth-child(3) { height: 18px; animation: barBounce 0.75s ease-in-out infinite 0.12s; }
+    .music-btn.playing .music-bar:nth-child(4) { height: 24px; animation: barBounce 0.75s ease-in-out infinite 0.06s; }
+    .music-btn.playing .music-bar:nth-child(5) { height: 18px; animation: barBounce 0.75s ease-in-out infinite 0.18s; }
+    .music-btn.playing .music-bar:nth-child(6) { height: 8px;  animation: barBounce 0.75s ease-in-out infinite 0.09s; }
+
+    @keyframes barBounce {
+      0%, 100% { transform: scaleY(0.25); opacity: 0.6; }
+      50%       { transform: scaleY(1);    opacity: 1;   }
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+    }
+
+    .empty-icon {
+      font-size: 2.8rem;
+      margin-bottom: 16px;
+      opacity: 0.25;
+    }
+
+    .empty-state p {
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      color: #4a3618;
+      font-style: italic;
+      font-family: 'IM Fell English', serif;
+      line-height: 2;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bg-canvas"></canvas>
+
+  <header>
+    <div class="eyebrow">✦ Cartographia Arcana ✦</div>
+    <h1>Secret Notes</h1>
+    <div class="ornament-line">⚜</div>
+    <p class="subtitle">Seal your secrets beneath ancient maps &mdash; rub to reveal</p>
+  </header>
+
+  <section class="write-section">
+    <div class="parchment-box">
+      <label class="form-label" for="note-input">✒ Inscribe Your Secret</label>
+      <textarea id="note-input" rows="4" placeholder="Write your secret here…"></textarea>
+      <button type="button" class="seal-btn" onclick="addNote()">⚑ &nbsp; Seal Beneath the Map</button>
+    </div>
+  </section>
+
+  <section class="notes-section">
+    <p class="section-label">⬥ Sealed Archives ⬥</p>
+    <div class="notes-list" id="notes-list"></div>
+  </section>
+
+  <audio id="bg-music" src="Hidden%20Notes/Hidden%20Notes/Untitled(8).wav" loop></audio>
+
+  <button type="button" id="music-toggle" class="music-btn paused" title="Toggle music">
+    <span class="music-note-icon">♫</span>
+    <span class="music-bar"></span>
+    <span class="music-bar"></span>
+    <span class="music-bar"></span>
+    <span class="music-bar"></span>
+    <span class="music-bar"></span>
+  </button>
+
+  <script>
+    const STORAGE_KEY = 'secret_notes_map_v1';
+
+    /* ── Storage ── */
+    function loadNotes() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+      catch { return []; }
+    }
+    function saveNotes(notes) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    }
+
+    /* ── Seeded RNG (Park-Miller) ── */
+    function makeRand(seed) {
+      let s = Math.abs(seed) % 2147483647 || 1;
+      return () => { s = s * 16807 % 2147483647; return (s - 1) / 2147483646; };
+    }
+
+    /* ── Compass rose ── */
+    function drawCompass(ctx, cx, cy, r) {
+      ctx.save();
+      ctx.translate(cx, cy);
+
+      // outer ring
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(70,40,10,0.5)';
+      ctx.lineWidth = 0.7;
+      ctx.stroke();
+
+      // 8-point star
+      for (let i = 0; i < 8; i++) {
+        const a = (i * Math.PI) / 4 - Math.PI / 2;
+        const cardinal = i % 2 === 0;
+        const tip = cardinal ? r * 0.88 : r * 0.55;
+        ctx.save();
+        ctx.rotate(a);
+        ctx.beginPath();
+        ctx.moveTo(0, -tip);
+        ctx.lineTo(r * 0.13, -r * 0.22);
+        ctx.lineTo(0, 0);
+        ctx.lineTo(-r * 0.13, -r * 0.22);
+        ctx.closePath();
+        ctx.fillStyle = cardinal ? 'rgba(55,28,8,0.75)' : 'rgba(110,70,30,0.55)';
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // north in red
+      ctx.beginPath();
+      ctx.moveTo(0, -r * 0.88);
+      ctx.lineTo(r * 0.13, -r * 0.22);
+      ctx.lineTo(-r * 0.13, -r * 0.22);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(155,25,25,0.8)';
+      ctx.fill();
+
+      // centre dot
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.13, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(60,30,8,0.8)';
+      ctx.fill();
+
+      // N label
+      ctx.font = `bold ${r * 0.38}px serif`;
+      ctx.fillStyle = 'rgba(55,28,8,0.85)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('N', 0, -r * 1.28);
+
+      ctx.restore();
+    }
+
+    /* ── Draw antique map onto canvas ── */
+    function drawMap(canvas, seed) {
+      const ctx  = canvas.getContext('2d');
+      const dpr  = window.devicePixelRatio || 1;
+      const W    = canvas.width  / dpr;   // CSS width
+      const H    = canvas.height / dpr;   // CSS height
+      const rand = makeRand(seed);
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      /* 1 — parchment background */
+      const bg = ctx.createRadialGradient(W * 0.38, H * 0.38, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.85);
+      bg.addColorStop(0,   '#f5e9bc');
+      bg.addColorStop(0.4, '#e8d49a');
+      bg.addColorStop(0.8, '#cfa96a');
+      bg.addColorStop(1,   '#a07838');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      /* 2 — parchment grain noise */
+      for (let i = 0; i < 2400; i++) {
+        const x = rand() * W;
+        const y = rand() * H;
+        const light = rand() > 0.55;
+        ctx.fillStyle = `rgba(${light ? 220 : 60},${light ? 180 : 40},${light ? 80 : 10},${rand() * 0.055})`;
+        ctx.fillRect(x, y, rand() * 2.5 + 0.5, rand() * 2.5 + 0.5);
+      }
+
+      /* 3 — coordinate grid */
+      const cols = 7, rows = 6;
+      const gW = W / cols, gH = H / rows;
+      ctx.strokeStyle = 'rgba(95,58,18,0.22)';
+      ctx.lineWidth = 0.8;
+      for (let c = 0; c <= cols; c++) {
+        ctx.beginPath(); ctx.moveTo(c * gW, 0); ctx.lineTo(c * gW, H); ctx.stroke();
+      }
+      for (let r = 0; r <= rows; r++) {
+        ctx.beginPath(); ctx.moveTo(0, r * gH); ctx.lineTo(W, r * gH); ctx.stroke();
+      }
+
+      /* 4 — latitude / longitude labels */
+      ctx.font = '8px serif';
+      ctx.fillStyle = 'rgba(80,48,14,0.42)';
+      ctx.textAlign = 'center';
+      for (let c = 1; c < cols; c++) {
+        const deg = Math.floor(rand() * 90);
+        ctx.fillText(`${deg}°`, c * gW, 11);
+        ctx.fillText(`${deg}°`, c * gW, H - 4);
+      }
+      ctx.textAlign = 'right';
+      for (let r = 1; r < rows; r++) {
+        const deg = Math.floor(rand() * 90);
+        ctx.fillText(`${deg}°`, W - 5, r * gH + 4);
+        ctx.fillText(`${deg}°`, 22,    r * gH + 4);
+      }
+
+      /* 5 — contour / topographic lines */
+      ctx.strokeStyle = 'rgba(90,55,15,0.16)';
+      ctx.lineWidth = 1;
+      for (let t = 0; t < 6; t++) {
+        ctx.beginPath();
+        let x = rand() * W * 0.4;
+        let y = rand() * H;
+        ctx.moveTo(x, y);
+        for (let s = 0; s < 9; s++) {
+          x += rand() * 70 + 25;
+          y += (rand() - 0.5) * 55;
+          const cpx = x - 35 + (rand() - 0.5) * 35;
+          const cpy = y + (rand() - 0.5) * 35;
+          ctx.quadraticCurveTo(cpx, cpy, x, y);
+        }
+        ctx.stroke();
+      }
+
+      /* 6 — diagonal "SECRET" watermark */
+      ctx.save();
+      ctx.translate(W / 2, H / 2);
+      ctx.rotate(-0.32);
+      ctx.font = `bold ${Math.min(W, H) * 0.19}px serif`;
+      ctx.fillStyle = 'rgba(130,20,20,0.16)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('SECRET', 0, 0);
+      ctx.restore();
+
+      /* 7 — TERRA INCOGNITA footer */
+      ctx.font = 'italic 9px serif';
+      ctx.fillStyle = 'rgba(80,48,14,0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText('TERRA INCOGNITA', W / 2, H - 14);
+
+      /* 8 — "rub to reveal" prompt */
+      ctx.font = `bold 10px serif`;
+      ctx.fillStyle = 'rgba(75,42,10,0.52)';
+      ctx.textAlign = 'center';
+      ctx.fillText('✦  RUB AWAY THE MAP TO REVEAL YOUR SECRET  ✦', W / 2, H / 2 + 28);
+
+      /* 9 — age spots */
+      for (let i = 0; i < 35; i++) {
+        ctx.beginPath();
+        ctx.arc(rand() * W, rand() * H, rand() * 3.5 + 0.5, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(70,38,8,${rand() * 0.22 + 0.04})`;
+        ctx.fill();
+      }
+
+      /* 10 — corner burn vignette */
+      [[0,0],[W,0],[0,H],[W,H]].forEach(([cx, cy]) => {
+        const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 75);
+        g.addColorStop(0, 'rgba(35,16,4,0.55)');
+        g.addColorStop(1, 'rgba(35,16,4,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(cx - 75, cy - 75, 150, 150);
+      });
+
+      /* 11 — compass rose */
+      drawCompass(ctx, W - 52, 52, 36);
+
+      /* 12 — decorative double border */
+      ctx.strokeStyle = 'rgba(70,40,8,0.72)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(3, 3, W - 6, H - 6);
+      ctx.strokeStyle = 'rgba(70,40,8,0.28)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(9, 9, W - 18, H - 18);
+
+      /* 13 — corner diamonds */
+      [[6,6],[W-6,6],[6,H-6],[W-6,H-6]].forEach(([ox, oy]) => {
+        ctx.save();
+        ctx.translate(ox, oy);
+        ctx.rotate(Math.PI / 4);
+        ctx.strokeStyle = 'rgba(80,48,14,0.55)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-4, -4, 8, 8);
+        ctx.restore();
+      });
+
+      ctx.restore(); // undo DPR scale
+    }
+
+    /* ── Scratch mechanic ── */
+    function initScratch(canvas, noteId, hint) {
+      const ctx  = canvas.getContext('2d');
+      const dpr  = window.devicePixelRatio || 1;
+      let   down = false;
+      let   totalPx = canvas.width * canvas.height;
+
+      function pos(e) {
+        const r = canvas.getBoundingClientRect();
+        const src = e.touches ? e.touches[0] : e;
+        return {
+          x: (src.clientX - r.left) * (canvas.width  / r.width),
+          y: (src.clientY - r.top)  * (canvas.height / r.height)
+        };
+      }
+
+      function erase(p) {
+        ctx.globalCompositeOperation = 'destination-out';
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 38 * dpr);
+        g.addColorStop(0,   'rgba(0,0,0,1)');
+        g.addColorStop(0.55,'rgba(0,0,0,0.85)');
+        g.addColorStop(1,   'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 38 * dpr, 0, Math.PI * 2);
+        ctx.fillStyle = g;
+        ctx.fill();
+        checkReveal();
+      }
+
+      function checkReveal() {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        let transparent = 0;
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] < 100) transparent++;
+        }
+        if (transparent / totalPx > 0.52) fullyReveal();
+      }
+
+      function fullyReveal() {
+        canvas.removeEventListener('mousedown',  onDown);
+        canvas.removeEventListener('mousemove',  onMove);
+        canvas.removeEventListener('touchstart', onTouchStart);
+        canvas.removeEventListener('touchmove',  onTouchMove);
+        window.removeEventListener('mouseup',  onUp);
+        window.removeEventListener('touchend', onUp);
+
+        const card  = canvas.closest('.note-card');
+        const inner = card.querySelector('.note-inner');
+
+        canvas.classList.add('fading');
+        if (hint) hint.classList.add('gone');
+
+        setTimeout(() => {
+          canvas.classList.add('gone');
+
+          // Auto-reseal countdown
+          const AUTO_SECS = 7;
+          let remaining = AUTO_SECS;
+
+          const countdown = document.createElement('div');
+          countdown.className = 'note-countdown';
+          countdown.textContent = `✦ Resealing in ${remaining}s ✦`;
+          inner.appendChild(countdown);
+
+          const hideBtn = document.createElement('button');
+          hideBtn.type = 'button';
+          hideBtn.className = 'note-hide-btn';
+          hideBtn.textContent = 'Hide Secret Note';
+          inner.appendChild(hideBtn);
+
+          const timer = setInterval(() => {
+            remaining--;
+            if (remaining <= 0) {
+              clearInterval(timer);
+              countdown.remove();
+              hideBtn.remove();
+              resealNote(noteId, card);
+            } else {
+              countdown.textContent = `✦ Resealing in ${remaining}s ✦`;
+            }
+          }, 1000);
+
+          hideBtn.onclick = () => {
+            clearInterval(timer);
+            countdown.remove();
+            hideBtn.remove();
+            resealNote(noteId, card);
+          };
+        }, 900);
+      }
+
+      function onDown(e)  { down = true; erase(pos(e)); }
+      function onMove(e)  { if (down) erase(pos(e)); }
+      function onUp()     { down = false; }
+      function onTouchStart(e) { e.preventDefault(); down = true; erase(pos(e)); }
+      function onTouchMove(e)  { e.preventDefault(); if (down) erase(pos(e)); }
+
+      canvas.addEventListener('mousedown',  onDown);
+      canvas.addEventListener('mousemove',  onMove);
+      window.addEventListener('mouseup',    onUp);
+      canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+      canvas.addEventListener('touchmove',  onTouchMove,  { passive: false });
+      window.addEventListener('touchend',   onUp);
+    }
+
+    /* ── Re-seal a revealed note under a fresh map ── */
+    function resealNote(noteId, card) {
+
+      // Rebuild overlay
+      const overlay = document.createElement('div');
+      overlay.className = 'map-overlay';
+      const canvas = document.createElement('canvas');
+      canvas.className = 'map-canvas';
+      overlay.appendChild(canvas);
+      card.appendChild(overlay);
+
+      const hint = document.createElement('div');
+      hint.className = 'scratch-hint';
+      hint.textContent = '✦ Rub the map to reveal your secret ✦';
+      card.appendChild(hint);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const dpr   = window.devicePixelRatio || 1;
+        const inner = card.querySelector('.note-inner');
+        const W = inner.offsetWidth;
+        const H = inner.offsetHeight;
+        if (!W || !H) return;
+        canvas.width  = W * dpr;
+        canvas.height = H * dpr;
+        drawMap(canvas, noteId);
+        initScratch(canvas, noteId, hint);
+      }));
+    }
+
+    /* ── Build a note card DOM element ── */
+    function createCard(note) {
+      const card  = document.createElement('div');
+      card.className  = 'note-card';
+      card.dataset.id = note.id;
+
+      const inner = document.createElement('div');
+      inner.className = 'note-inner';
+
+      const txt = document.createElement('div');
+      txt.className = 'note-text';
+      txt.textContent = note.text;
+
+      const meta = document.createElement('div');
+      meta.className = 'note-date';
+      meta.textContent = new Date(note.ts).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' });
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'note-delete';
+      del.textContent = 'BURN';
+      del.onclick = () => deleteNote(note.id, card);
+
+      inner.appendChild(txt);
+      inner.appendChild(meta);
+      inner.appendChild(del);
+      card.appendChild(inner);
+
+      let canvasEl = null;
+      let hintEl   = null;
+
+      if (!note.revealed) {
+        const overlay = document.createElement('div');
+        overlay.className = 'map-overlay';
+
+        canvasEl = document.createElement('canvas');
+        canvasEl.className = 'map-canvas';
+        overlay.appendChild(canvasEl);
+        card.appendChild(overlay);
+
+        hintEl = document.createElement('div');
+        hintEl.className = 'scratch-hint';
+        hintEl.textContent = '✦ Rub the map to reveal your secret ✦';
+        card.appendChild(hintEl);
+      }
+
+      return { card, canvas: canvasEl, hint: hintEl };
+    }
+
+    /* ── Render all notes ── */
+    function render() {
+      const notes  = loadNotes();
+      const list   = document.getElementById('notes-list');
+      list.innerHTML = '';
+
+      if (notes.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🗺</div>
+            <p>No sealed notes yet.<br>Inscribe your first secret above.</p>
+          </div>`;
+        return;
+      }
+
+      const pending = [];
+
+      notes.slice().reverse().forEach(note => {
+        const { card, canvas, hint } = createCard(note);
+        list.appendChild(card);
+        if (canvas) pending.push({ canvas, hint, noteId: note.id });
+      });
+
+      /* Size canvases after layout */
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        pending.forEach(({ canvas, hint, noteId }) => {
+          const dpr    = window.devicePixelRatio || 1;
+          const parent = canvas.parentElement;            // .map-overlay
+          const card   = parent.parentElement;            // .note-card
+          const inner  = card.querySelector('.note-inner');
+          const W = inner.offsetWidth;
+          const H = inner.offsetHeight;
+          if (!W || !H) return;
+
+          canvas.width  = W * dpr;
+          canvas.height = H * dpr;
+          drawMap(canvas, noteId);
+          initScratch(canvas, noteId, hint);
+        });
+      }));
+    }
+
+    /* ── Add note — inserts card without wiping the list ── */
+    function addNote() {
+      const inp  = document.getElementById('note-input');
+      const text = inp.value.trim();
+      if (!text) return;
+
+      const id   = Date.now();
+      const note = { id, text, ts: id, revealed: false };
+
+      const notes = loadNotes();
+      notes.push(note);
+      saveNotes(notes);
+      inp.value = '';
+
+      const list  = document.getElementById('notes-list');
+      const empty = list.querySelector('.empty-state');
+      if (empty) empty.remove();
+
+      const { card, canvas, hint } = createCard(note);
+      list.insertBefore(card, list.firstChild);   // newest at top
+
+      if (canvas) {
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const dpr   = window.devicePixelRatio || 1;
+          const inner = card.querySelector('.note-inner');
+          const W = inner.offsetWidth;
+          const H = inner.offsetHeight;
+          if (!W || !H) return;
+          canvas.width  = W * dpr;
+          canvas.height = H * dpr;
+          drawMap(canvas, note.id);
+          initScratch(canvas, note.id, hint);
+        }));
+      }
+    }
+
+    /* ── Delete note — removes only that card ── */
+    function deleteNote(id, card) {
+      card.style.transition = 'opacity 0.35s, transform 0.35s';
+      card.style.opacity    = '0';
+      card.style.transform  = 'scale(0.96)';
+      setTimeout(() => {
+        card.remove();
+        const notes = loadNotes().filter(n => n.id !== id);
+        saveNotes(notes);
+        const list = document.getElementById('notes-list');
+        if (!list.querySelector('.note-card')) {
+          list.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">🗺</div>
+              <p>No sealed notes yet.<br>Inscribe your first secret above.</p>
+            </div>`;
+        }
+      }, 360);
+    }
+
+    /* ── Keyboard shortcut ── */
+    document.getElementById('note-input').addEventListener('keydown', e => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') addNote();
+    });
+
+    /* ── Background painting ── */
+    function hexRgb(hex) {
+      const n = parseInt(hex.replace('#',''), 16);
+      return [(n>>16)&255, (n>>8)&255, n&255];
+    }
+    function rgba(hex, a) {
+      const [r,g,b] = hexRgb(hex);
+      return `rgba(${r},${g},${b},${a})`;
+    }
+
+    function paintStroke(ctx, W, H, rand, color, minW, maxW, baseAlpha) {
+      const x1 = (rand()-0.1) * W * 1.2;
+      const y1 = (rand()-0.1) * H * 1.2;
+      const x2 = (rand()-0.1) * W * 1.2;
+      const y2 = (rand()-0.1) * H * 1.2;
+      const spread = Math.max(W, H) * (0.3 + rand() * 0.4);
+      const mx = (x1+x2)/2, my = (y1+y2)/2;
+      const cp1x = mx + (rand()-0.5)*spread*2;
+      const cp1y = my + (rand()-0.5)*spread*2;
+      const cp2x = mx + (rand()-0.5)*spread;
+      const cp2y = my + (rand()-0.5)*spread;
+      const w = minW + rand() * (maxW - minW);
+
+      const g = ctx.createLinearGradient(x1, y1, x2, y2);
+      g.addColorStop(0,    rgba(color, 0));
+      g.addColorStop(0.2,  rgba(color, baseAlpha));
+      g.addColorStop(0.5,  rgba(color, baseAlpha * 1.4));
+      g.addColorStop(0.8,  rgba(color, baseAlpha));
+      g.addColorStop(1,    rgba(color, 0));
+
+      ctx.lineWidth = w;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x2, y2);
+      ctx.stroke();
+    }
+
+    function paintBackground() {
+      const c = document.getElementById('bg-canvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      c.width  = window.innerWidth;
+      c.height = window.innerHeight;
+      const W = c.width, H = c.height;
+      const rand = makeRand(271828);
+
+      /* 1 ── Deep base */
+      const base = ctx.createRadialGradient(W*.38, H*.32, 0, W*.5, H*.5, Math.max(W,H));
+      base.addColorStop(0,   '#1e0d30');
+      base.addColorStop(0.3, '#100c22');
+      base.addColorStop(0.7, '#07080f');
+      base.addColorStop(1,   '#030206');
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, W, H);
+
+      /* 2 ── Large colour masses (atmospheric depth) */
+      const masses = [
+        { x:W*.15, y:H*.75, r:W*.65, c:'#1c0640', a:.55 },
+        { x:W*.85, y:H*.2,  r:W*.55, c:'#04153a', a:.50 },
+        { x:W*.6,  y:H*.8,  r:W*.5,  c:'#021a18', a:.45 },
+        { x:W*.05, y:H*.1,  r:W*.45, c:'#280a10', a:.40 },
+        { x:W*.5,  y:H*.4,  r:W*.3,  c:'#200c04', a:.30 },
+      ];
+      masses.forEach(m => {
+        const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r);
+        g.addColorStop(0, m.c);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g;
+        ctx.globalAlpha = m.a;
+        ctx.fillRect(0, 0, W, H);
+      });
+      ctx.globalAlpha = 1;
+
+      /* 3 ── Layered paint strokes — back to front */
+      const layers = [
+        // Background depth — wide, dark
+        { color:'#2a1260', n:10, min:100, max:180, a:.13 },
+        { color:'#0e2858', n:10, min:100, max:180, a:.13 },
+        { color:'#340e22', n:8,  min:90,  max:160, a:.11 },
+        { color:'#0c3430', n:8,  min:90,  max:160, a:.11 },
+        // Mid tones — rich colour
+        { color:'#5c28a8', n:8,  min:60,  max:110, a:.12 },
+        { color:'#1c5caa', n:8,  min:60,  max:110, a:.12 },
+        { color:'#aa2860', n:7,  min:55,  max:100, a:.10 },
+        { color:'#189078', n:7,  min:55,  max:100, a:.10 },
+        { color:'#a07010', n:7,  min:55,  max:100, a:.12 },
+        { color:'#7010a0', n:6,  min:50,  max:90,  a:.10 },
+        // Brighter mid
+        { color:'#8848d8', n:6,  min:35,  max:65,  a:.10 },
+        { color:'#3888d0', n:6,  min:35,  max:65,  a:.10 },
+        { color:'#d05838', n:5,  min:30,  max:60,  a:.09 },
+        { color:'#28c0a0', n:5,  min:30,  max:58,  a:.09 },
+        { color:'#d8a818', n:5,  min:30,  max:58,  a:.11 },
+        { color:'#c028a8', n:4,  min:28,  max:52,  a:.08 },
+        // Fine highlights — narrow, bright
+        { color:'#c0a0f8', n:5,  min:12,  max:28,  a:.08 },
+        { color:'#80c8f8', n:5,  min:12,  max:28,  a:.08 },
+        { color:'#f8c860', n:5,  min:10,  max:24,  a:.10 },
+        { color:'#60f8d8', n:4,  min:10,  max:22,  a:.08 },
+        { color:'#f860c0', n:4,  min:10,  max:20,  a:.07 },
+        // Impasto bright marks
+        { color:'#fff0e0', n:4,  min:4,   max:12,  a:.06 },
+        { color:'#d0f0ff', n:4,  min:4,   max:12,  a:.06 },
+        { color:'#fff880', n:3,  min:3,   max:10,  a:.07 },
+      ];
+      layers.forEach(({ color, n, min, max, a }) => {
+        for (let i = 0; i < n; i++) paintStroke(ctx, W, H, rand, color, min, max, a);
+      });
+
+      /* 4 ── Warm light source (upper-left glow) */
+      const lg = ctx.createRadialGradient(W*.33, H*.25, 0, W*.33, H*.25, W*.55);
+      lg.addColorStop(0,   'rgba(210,145,40,0.22)');
+      lg.addColorStop(0.35,'rgba(180,90,20,0.10)');
+      lg.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = lg;
+      ctx.fillRect(0, 0, W, H);
+
+      /* 5 ── Cool secondary glow (lower-right) */
+      const cg = ctx.createRadialGradient(W*.75, H*.72, 0, W*.75, H*.72, W*.45);
+      cg.addColorStop(0,   'rgba(20,110,180,0.18)');
+      cg.addColorStop(0.4, 'rgba(10,70,120,0.08)');
+      cg.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = cg;
+      ctx.fillRect(0, 0, W, H);
+
+      /* 6 ── Magenta accent glow */
+      const mg = ctx.createRadialGradient(W*.82, H*.28, 0, W*.82, H*.28, W*.3);
+      mg.addColorStop(0,   'rgba(160,30,120,0.14)');
+      mg.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.fillStyle = mg;
+      ctx.fillRect(0, 0, W, H);
+
+      /* 7 ── Deep vignette for 3D depth */
+      const vig = ctx.createRadialGradient(W*.45, H*.42, H*.1, W*.5, H*.5, Math.max(W,H)*.82);
+      vig.addColorStop(0,   'rgba(0,0,0,0)');
+      vig.addColorStop(0.5, 'rgba(0,0,0,0.08)');
+      vig.addColorStop(0.8, 'rgba(0,0,0,0.40)');
+      vig.addColorStop(1,   'rgba(0,0,0,0.82)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    paintBackground();
+    window.addEventListener('resize', paintBackground);
+
+    render();
+    /* ── Music ── */
+    const audio   = document.getElementById('bg-music');
+    const musicBtn = document.getElementById('music-toggle');
+
+    function setPlaying(on) {
+      if (on) {
+        musicBtn.classList.remove('paused');
+        musicBtn.classList.add('playing');
+      } else {
+        musicBtn.classList.remove('playing');
+        musicBtn.classList.add('paused');
+      }
+    }
+
+    // Try autoplay; browsers usually block it until first interaction
+    audio.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
+
+    musicBtn.addEventListener('click', () => {
+      if (audio.paused) {
+        audio.play();
+        setPlaying(true);
+      } else {
+        audio.pause();
+        setPlaying(false);
+      }
+    });
+
+    /* ── Cursor firework trail ── */
+    (function () {
+      const c = document.createElement('canvas');
+      c.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;pointer-events:none;';
+      document.body.appendChild(c);
+      const ctx = c.getContext('2d');
+
+      let W, H;
+      function resize() { W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let particles = [];
+      let hue = 0;
+
+      function spawnBurst(x, y, count, speed) {
+        for (let i = 0; i < count; i++) {
+          const angle = (i / count) * Math.PI * 2 + Math.random() * 0.8;
+          const v     = speed * (0.3 + Math.random() * 0.9);
+          const h     = (hue + Math.random() * 80) % 360;
+          particles.push({
+            x, y,
+            vx: Math.cos(angle) * v,
+            vy: Math.sin(angle) * v,
+            life: 1,
+            decay:   0.014 + Math.random() * 0.022,
+            size:    1.5   + Math.random() * 4,
+            hue: h,
+            gravity: 0.045 + Math.random() * 0.055,
+            trail: [],
+          });
+        }
+        hue = (hue + 18) % 360;
+      }
+
+      function spawnTrail(x, y) {
+        particles.push({
+          x, y,
+          vx: (Math.random() - 0.5) * 2.5,
+          vy: -0.8 - Math.random() * 2.2,
+          life: 0.85,
+          decay:   0.028 + Math.random() * 0.038,
+          size:    1.8   + Math.random() * 3.2,
+          hue: (hue + Math.random() * 40) % 360,
+          gravity: 0.05,
+          trail: [],
+        });
+        hue = (hue + 4) % 360;
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, W, H);
+        particles = particles.filter(p => p.life > 0.01);
+
+        for (const p of particles) {
+          p.trail.push({ x: p.x, y: p.y, life: p.life });
+          if (p.trail.length > 12) p.trail.shift();
+
+          p.x  += p.vx;
+          p.y  += p.vy;
+          p.vy += p.gravity;
+          p.vx *= 0.97;
+          p.life -= p.decay;
+
+          /* trail lines */
+          for (let i = 1; i < p.trail.length; i++) {
+            const t0 = p.trail[i - 1], t1 = p.trail[i];
+            const a  = (i / p.trail.length) * t1.life * 0.65;
+            ctx.beginPath();
+            ctx.moveTo(t0.x, t0.y);
+            ctx.lineTo(t1.x, t1.y);
+            ctx.strokeStyle = `hsla(${p.hue},100%,65%,${a})`;
+            ctx.lineWidth   = Math.max(p.size * (i / p.trail.length) * 0.7, 0.4);
+            ctx.lineCap     = 'round';
+            ctx.stroke();
+          }
+
+          /* core dot */
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue},100%,70%,${p.life})`;
+          ctx.fill();
+
+          /* soft glow */
+          const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 5);
+          g.addColorStop(0, `hsla(${p.hue},100%,80%,${p.life * 0.45})`);
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 5, 0, Math.PI * 2);
+          ctx.fillStyle = g;
+          ctx.fill();
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      /* mouse trail */
+      let lastX = 0, lastY = 0, ticks = 0;
+      document.addEventListener('mousemove', e => {
+        const dx = e.clientX - lastX, dy = e.clientY - lastY;
+        if (dx * dx + dy * dy > 25) {
+          spawnTrail(e.clientX, e.clientY);
+          if (++ticks % 7 === 0) spawnBurst(e.clientX, e.clientY, 7, 3.5);
+          lastX = e.clientX; lastY = e.clientY;
+        }
+      });
+
+      /* click explosion */
+      document.addEventListener('click', e => spawnBurst(e.clientX, e.clientY, 30, 8));
+
+      /* header colour bursts every 500 ms */
+      setInterval(() => {
+        const h1 = document.querySelector('h1');
+        if (!h1) return;
+        const r  = h1.getBoundingClientRect();
+        const x  = r.left + Math.random() * r.width;
+        const y  = r.top  + r.height * (0.2 + Math.random() * 0.6);
+        spawnBurst(x, y, 14, 5.5);
+      }, 500);
+
+      animate();
+    }());
+  </script>
+
+
+</body>
+</html>
