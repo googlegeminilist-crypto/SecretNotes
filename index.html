@@ -757,36 +757,13 @@
         setTimeout(() => {
           canvas.classList.add('gone');
 
-          // Auto-reseal countdown
-          const AUTO_SECS = 7;
-          let remaining = AUTO_SECS;
-
-          const countdown = document.createElement('div');
-          countdown.className = 'note-countdown';
-          countdown.textContent = `✦ Resealing in ${remaining}s ✦`;
-          inner.appendChild(countdown);
-
           const hideBtn = document.createElement('button');
           hideBtn.type = 'button';
           hideBtn.className = 'note-hide-btn';
           hideBtn.textContent = 'Hide Secret Note';
           inner.appendChild(hideBtn);
 
-          const timer = setInterval(() => {
-            remaining--;
-            if (remaining <= 0) {
-              clearInterval(timer);
-              countdown.remove();
-              hideBtn.remove();
-              resealNote(noteId, card);
-            } else {
-              countdown.textContent = `✦ Resealing in ${remaining}s ✦`;
-            }
-          }, 1000);
-
           hideBtn.onclick = () => {
-            clearInterval(timer);
-            countdown.remove();
             hideBtn.remove();
             resealNote(noteId, card);
           };
