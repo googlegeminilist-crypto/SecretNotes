@@ -181,6 +181,7 @@
       letter-spacing: 4px;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
       transition: all 0.25s;
       box-shadow:
         0 4px 18px rgba(139,0,0,0.45),
@@ -271,12 +272,13 @@
       background: transparent;
       border: 1px solid rgba(120, 70, 20, 0.28);
       color: rgba(110, 65, 15, 0.5);
-      padding: 4px 11px;
+      padding: 8px 14px;
       font-size: 0.58rem;
       letter-spacing: 3px;
       font-family: 'Cinzel', serif;
       border-radius: 1px;
       cursor: pointer;
+      touch-action: manipulation;
       text-transform: uppercase;
       transition: all 0.2s;
     }
@@ -298,18 +300,21 @@
     }
 
     .note-hide-btn {
-      display: inline-block;
-      margin-top: 10px;
+      display: block;
+      width: 100%;
+      margin-top: 14px;
       background: linear-gradient(135deg, #5a2e00 0%, #7a4400 100%);
       color: #f0d080;
       border: 1px solid #3a1e00;
       border-radius: 2px;
-      padding: 7px 18px;
+      padding: 12px 18px;
       font-size: 0.62rem;
       letter-spacing: 3px;
       font-family: 'Cinzel', serif;
       text-transform: uppercase;
       cursor: pointer;
+      touch-action: manipulation;
+      text-align: center;
       transition: all 0.2s;
       box-shadow: 0 2px 8px rgba(80,40,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
     }
@@ -375,6 +380,7 @@
       background: radial-gradient(circle at 38% 38%, #d49010, #7a4e00);
       border: 2px solid #4a3000;
       cursor: pointer;
+      touch-action: manipulation;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -453,17 +459,87 @@
       font-family: 'IM Fell English', serif;
       line-height: 2;
     }
+
+    /* ── MOBILE ── */
+    @media (max-width: 540px) {
+      body {
+        padding: 32px 12px 100px;
+      }
+
+      header {
+        margin-bottom: 30px;
+      }
+
+      h1 {
+        letter-spacing: 2px;
+      }
+
+      .eyebrow {
+        letter-spacing: 3px;
+        font-size: 0.55rem;
+      }
+
+      .subtitle {
+        letter-spacing: 1px;
+        font-size: 0.68rem;
+      }
+
+      .ornament-line::before,
+      .ornament-line::after {
+        width: 36px;
+      }
+
+      .write-section {
+        margin-bottom: 36px;
+      }
+
+      .parchment-box {
+        padding: 18px 16px 16px;
+      }
+
+      #note-input {
+        font-size: 1rem;
+        min-height: 80px;
+      }
+
+      .seal-btn {
+        letter-spacing: 2px;
+        padding: 16px 16px;
+        font-size: 0.72rem;
+      }
+
+      .note-inner {
+        padding: 18px 16px 16px;
+        min-height: 100px;
+      }
+
+      .note-text {
+        font-size: 1rem;
+        padding-right: 48px;
+      }
+
+      .notes-list {
+        gap: 44px;
+      }
+
+      .section-label {
+        letter-spacing: 3px;
+      }
+
+      .scratch-hint {
+        font-size: 0.5rem;
+        letter-spacing: 2px;
+      }
+
+      .music-btn {
+        bottom: 16px;
+        right: 16px;
+        width: 52px;
+        height: 52px;
+      }
+    }
   </style>
 </head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-CSYETJJX2V"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-CSYETJJX2V');
-</script>
 <body>
 
   <canvas id="bg-canvas"></canvas>
@@ -1258,8 +1334,23 @@
         }
       });
 
-      /* click explosion */
+      /* touch trail */
+      document.addEventListener('touchmove', e => {
+        const t = e.touches[0];
+        const dx = t.clientX - lastX, dy = t.clientY - lastY;
+        if (dx * dx + dy * dy > 25) {
+          spawnTrail(t.clientX, t.clientY);
+          if (++ticks % 5 === 0) spawnBurst(t.clientX, t.clientY, 7, 3.5);
+          lastX = t.clientX; lastY = t.clientY;
+        }
+      }, { passive: true });
+
+      /* click / tap explosion */
       document.addEventListener('click', e => spawnBurst(e.clientX, e.clientY, 30, 8));
+      document.addEventListener('touchstart', e => {
+        const t = e.touches[0];
+        spawnBurst(t.clientX, t.clientY, 20, 6);
+      }, { passive: true });
 
       /* header colour bursts every 500 ms */
       setInterval(() => {
